@@ -1,3 +1,14 @@
+---
+title: PNA Assistant
+emoji: 👨🏾‍⚕️
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 5.12.0
+app_file: app.py
+pinned: false
+---
+
 <p align="center">
   <img src="https://em-content.zobj.net/source/apple/391/woman-health-worker-medium-skin-tone_1f469-1f3fd-200d-2695-fe0f.png" width="80" alt="PNA Logo">
 </p>
