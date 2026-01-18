@@ -68,8 +68,6 @@ with gr.Blocks(css=CUSTOM_CSS, title="PNA Assistant") as demo:
             "What does a Professional Nurse Advocate do?"
         ],
         title="",
-        retry_btn=None,
-        undo_btn=None,
     )
     
     gr.HTML(DISCLAIMER_HTML)
