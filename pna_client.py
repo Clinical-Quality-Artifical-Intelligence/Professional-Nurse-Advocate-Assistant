@@ -4,9 +4,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import spaces
 
 class PNAAssistantClient:
-    # Using google/gemma-2-2b-it - a fast, reliable model that works on ZeroGPU
-    # Person-centred voice is achieved through strong PNA system prompting
-    def __init__(self, model_id="google/gemma-2-2b-it"):
+    # Using user's merged MedGemma model - trained on person-centred language
+    def __init__(self, model_id="NurseCitizenDeveloper/relational-intelligence-medgemma-merged"):
         self.model_id = model_id
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = None

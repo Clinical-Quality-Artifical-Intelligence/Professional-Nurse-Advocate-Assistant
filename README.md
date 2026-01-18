@@ -17,9 +17,9 @@ An AI-powered tutor designed to guide nursing professionals through the **A-EQUI
 Automatically synced from GitHub via GitHub Actions.
 
 ## 🧠 Model Strategy
-- **Base Model**: `google/gemma-2-2b-it` (fast, ZeroGPU optimized, 2.5B params)
+- **Base Model**: `NurseCitizenDeveloper/relational-intelligence-medgemma-merged` (person-centred, fine-tuned on FONS principles)
 - **Knowledge Base**: RAG implementation using the official PNA A-EQUIP guide.
-- **Persona**: Strong PNA Tutor system prompting for person-centred, restorative voice.
+- **Persona**: Strong PNA Tutor system prompting for restorative supervision focus.
 
 ## ⚖️ Disclaimer
 This tool is for educational and supportive purposes for Professional Nurse Advocates and nursing staff. It does not provide direct clinical advice.
