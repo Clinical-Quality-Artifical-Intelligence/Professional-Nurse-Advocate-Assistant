@@ -7,7 +7,8 @@ import marko
 class PNAKnowledgeBase:
     def __init__(self, guide_path):
         self.guide_path = guide_path
-        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
+        # Force CPU for embeddings to avoid ZeroGPU device mismatch
+        self.encoder = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
         self.chunks = []
         self.index = None
         
