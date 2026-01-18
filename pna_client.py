@@ -57,10 +57,12 @@ class PNAAssistantClient:
         ]
         
         inputs = self.tokenizer.apply_chat_template(messages, return_tensors="pt", add_generation_prompt=True).to(self.device)
+        attention_mask = torch.ones_like(inputs).to(self.device)
         
         with torch.no_grad():
             outputs = self.model.generate(
                 inputs, 
+                attention_mask=attention_mask,
                 max_new_tokens=300, 
                 temperature=0.7, 
                 do_sample=True,
