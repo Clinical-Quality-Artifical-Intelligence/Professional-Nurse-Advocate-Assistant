@@ -1,12 +1,10 @@
 gradio>=5.0.0
 transformers
-torch
 sentence-transformers
 faiss-cpu
-spaces
+huggingface_hub
 gTTS
 librosa
-accelerate
 sentencepiece
 protobuf
 marko

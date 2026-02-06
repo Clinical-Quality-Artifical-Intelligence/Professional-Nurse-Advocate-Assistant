@@ -1,44 +1,19 @@
-# CRITICAL: spaces MUST be imported FIRST before torch/CUDA
-import spaces
-import os
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+# No GPU needed - Uses Hugging Face Inference API
+from huggingface_hub import InferenceClient
 
 class PNAAssistantClient:
-    """PNA Assistant Client - loads model locally on ZeroGPU."""
+    """PNA Assistant Client - uses Hugging Face Inference API (no GPU needed)."""
     
-    def __init__(self, model_id="google/gemma-2-2b-it"):
+    def __init__(self, model_id="HuggingFaceH4/zephyr-7b-beta"):
         self.model_id = model_id
-        self.model = None
-        self.tokenizer = None
-        self.device = None  # Will be set inside @spaces.GPU function
+        self.client = InferenceClient()
         
         # Diversity Emojis
         self.diversity_emojis = ["👨🏾‍⚕️", "👩🏽‍⚕️", "👨🏿‍⚕️", "👩🏻‍⚕️", "👩‍⚕️"]
-        print("PNA Assistant initialized (ZeroGPU mode)")
+        print(f"PNA Assistant initialized (Inference API: {model_id})")
 
-    def _load_model(self):
-        """Load model - called from inside @spaces.GPU decorated function."""
-        if self.model is None:
-            print("Loading model...")
-            # Detect device INSIDE the GPU function where CUDA is available
-            self.device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"Device: {self.device}")
-            
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_id,
-                device_map="auto" if self.device == "cuda" else None,
-                torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
-            )
-            print("Model loaded successfully!")
-
-    @spaces.GPU(duration=60)
     def generate_response(self, prompt, context="", history=[]):
-        """Generate response using local model on GPU."""
-        
-        # Load model if not loaded (happens inside GPU context)
-        self._load_model()
+        """Generate response using Hugging Face Inference API."""
         
         system_prompt = f"""You are a Professional Nurse Advocate (PNA) AI tutor. Your role is to guide nursing professionals through the A-EQUIP model (Advocating and Educating for Quality Improvement).
 
@@ -63,26 +38,21 @@ class PNAAssistantClient:
 {context}
 """
 
-        full_prompt = f"<start_of_turn>user\n{system_prompt}\n\nUser question: {prompt}<end_of_turn>\n<start_of_turn>model\n"
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
         
         try:
-            inputs = self.tokenizer(full_prompt, return_tensors="pt").to(self.model.device)
-            
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=300,
+            response = self.client.chat_completion(
+                model=self.model_id,
+                messages=messages,
+                max_tokens=300,
                 temperature=0.7,
-                do_sample=True,
-                pad_token_id=self.tokenizer.eos_token_id,
             )
-            
-            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            # Extract only the model's response
-            if "<start_of_turn>model" in response:
-                response = response.split("<start_of_turn>model")[-1].strip()
-            
-            return response
+            return response.choices[0].message.content
             
         except Exception as e:
-            print(f"Generation error: {e}")
-            return f"👩🏽‍⚕️ I apologize, but I'm experiencing technical difficulties. Please try again in a moment."
+            print(f"Inference API error: {e}")
+            # Fallback response
+            return f"👩🏽‍⚕️ I apologize, but I'm experiencing technical difficulties connecting to the AI service. Please try again in a moment.\n\nError details: {str(e)[:200]}"
