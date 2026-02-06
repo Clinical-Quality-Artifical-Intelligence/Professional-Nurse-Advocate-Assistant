@@ -1,4 +1,3 @@
-import spaces  # MUST be first before any torch/CUDA imports
 import gradio as gr
 from knowledge_base import PNAKnowledgeBase
 from pna_client import PNAAssistantClient

@@ -1,5 +1,3 @@
-import spaces  # MUST be first before torch
-import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -25,7 +23,6 @@ class PNAAssistantClient:
             )
             print("Model loaded successfully!")
 
-    @spaces.GPU()
     def generate_response(self, prompt, context="", history=[]):
         self._load_model()
         
