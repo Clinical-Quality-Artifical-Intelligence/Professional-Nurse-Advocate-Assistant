@@ -1,39 +1,20 @@
-# CRITICAL: spaces MUST be imported FIRST before torch/CUDA
-import spaces
 import os
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from huggingface_hub import InferenceClient
 
 class PNAAssistantClient:
-    # Using user's merged MedGemma model - trained on person-centred language
+    """PNA Assistant using Hugging Face Inference API (no local GPU required)."""
+    
     def __init__(self, model_id="google/gemma-2-2b-it"):
         self.model_id = model_id
-        # Don't set device in __init__ as it might be CPU on startup
-        self.tokenizer = None
-        self.model = None
+        # Use Hugging Face Inference API - no GPU needed locally
+        self.client = InferenceClient()
         
         # Diversity Emojis from PNA instructions
         self.diversity_emojis = ["👨🏾‍⚕️", "👩🏽‍⚕️", "👨🏿‍⚕️", "👩🏻‍⚕️", "👩‍⚕️"]
+        print("PNA Assistant initialized (using Inference API)")
 
-    def _load_model(self):
-        if self.model is None:
-            print(f"Loading model {self.model_id}...")
-            # Inside @spaces.GPU, torch.cuda.is_available() should be True
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            print(f"Using device: {device}")
-            
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_id,
-                torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
-                device_map="auto" if device == "cuda" else None
-            )
-            self.device = device
-            print("Model loaded successfully!")
-
-    @spaces.GPU()
     def generate_response(self, prompt, context="", history=[]):
-        self._load_model()
+        """Generate response using Hugging Face Inference API."""
         
         system_prompt = f"""You are a Professional Nurse Advocate (PNA) AI tutor. Your role is to guide nursing professionals through the A-EQUIP model (Advocating and Educating for Quality Improvement).
 
@@ -58,22 +39,24 @@ class PNAAssistantClient:
 {context}
 """
 
-        messages = [
-            {"role": "user", "content": f"{system_prompt}\n\nUser question: {prompt}"}
-        ]
-        
-        inputs = self.tokenizer.apply_chat_template(messages, return_tensors="pt", add_generation_prompt=True).to(self.device)
-        attention_mask = torch.ones_like(inputs).to(self.device)
-        
-        with torch.no_grad():
-            outputs = self.model.generate(
-                inputs, 
-                attention_mask=attention_mask,
-                max_new_tokens=300, 
-                temperature=0.7, 
-                do_sample=True,
-                pad_token_id=self.tokenizer.eos_token_id
+        try:
+            # Build messages for chat completion
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+            
+            # Use Inference API for text generation
+            response = self.client.chat_completion(
+                model=self.model_id,
+                messages=messages,
+                max_tokens=300,
+                temperature=0.7,
             )
             
-        response = self.tokenizer.decode(outputs[0][inputs.shape[-1]:], skip_special_tokens=True)
-        return response.strip()
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            print(f"Inference API error: {e}")
+            # Fallback response
+            return f"👩🏽‍⚕️ I apologize, but I'm experiencing technical difficulties right now. As a PNA Assistant, I'm here to support you with the A-EQUIP model and restorative supervision. Please try again in a moment, or feel free to ask me about:\n\n• The four functions of clinical supervision\n• Restorative supervision techniques\n• The role of a Professional Nurse Advocate\n• Quality improvement in nursing practice"

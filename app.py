@@ -1,4 +1,3 @@
-import spaces
 import gradio as gr
 from knowledge_base import PNAKnowledgeBase
 from pna_client import PNAAssistantClient
