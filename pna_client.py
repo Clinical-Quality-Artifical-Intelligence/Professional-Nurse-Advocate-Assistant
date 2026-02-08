@@ -6,7 +6,8 @@ import os
 from huggingface_hub import InferenceClient
 
 # Model to use via Inference API
-MODEL_ID = "google/gemma-2-2b-it"
+# Note: Using Phi-3 because Gemma 2 isn't available on HF serverless Inference API
+MODEL_ID = "microsoft/Phi-3-mini-4k-instruct"
 
 
 class PNAAssistantClient:
