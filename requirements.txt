@@ -1,13 +1,5 @@
 gradio>=5.0.0
-transformers
-torch
+huggingface_hub
 sentence-transformers
 faiss-cpu
-spaces
-gTTS
-librosa
-accelerate
-bitsandbytes
-sentencepiece
-protobuf
 marko
