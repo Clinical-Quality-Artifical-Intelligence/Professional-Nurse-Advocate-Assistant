@@ -17,24 +17,20 @@ class PNAAssistantClient:
 
     def generate_response(self, prompt, context="", history=[]):
         emoji_list = ", ".join(self.diversity_emojis)
-        system_content = f"You are a Professional Nurse Advocate (PNA) AI tutor. Include emoji: {emoji_list}. Context: {context}"
+        system_content = f"You are a Professional Nurse Advocate (PNA) AI tutor for the A-EQUIP model. Include emoji: {emoji_list}. Keep responses to 2 paragraphs max. Context: {context}"
         
-        # Zephyr format using concatenation to avoid tag issues
-        SYS = "<" + "|system|" + ">"
-        USR = "<" + "|user|" + ">"
-        ASST = "<" + "|assistant|" + ">"
-        END = "<" + "/s" + ">"
-        
-        full_prompt = f"{SYS}\n{system_content}{END}\n{USR}\n{prompt}{END}\n{ASST}\n"
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": prompt}
+        ]
         
         try:
-            response = self.client.text_generation(
-                full_prompt,
-                max_new_tokens=300,
-                temperature=0.7,
-                do_sample=True
+            response = self.client.chat_completion(
+                messages=messages,
+                max_tokens=300,
+                temperature=0.7
             )
-            return response.strip()
+            return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Error: {e}")
             return f"I apologize, but I am experiencing technical difficulties. (Error: {str(e)})"
