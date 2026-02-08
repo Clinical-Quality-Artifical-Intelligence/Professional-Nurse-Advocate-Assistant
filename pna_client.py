@@ -23,7 +23,8 @@ class PNAAssistantClient:
 
     def query_api(self, model_id, payload):
         """Send request to HF Inference API"""
-        api_url = f"https://api-inference.huggingface.co/models/{model_id}"
+        # Updated URL as per error message
+        api_url = f"https://router.huggingface.co/hf-inference/models/{model_id}"
         response = requests.post(api_url, headers=self.headers, json=payload)
         return response.json()
 
