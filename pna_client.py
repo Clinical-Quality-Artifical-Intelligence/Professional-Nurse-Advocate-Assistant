@@ -1,5 +1,6 @@
 import spaces  # MUST be first before torch
 import os
+import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -7,6 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 _model = None
 _tokenizer = None
 _model_id = "google/gemma-2-2b-it"
+MAX_RETRIES = 3
 
 @spaces.GPU(duration=60)
 def generate_with_gpu(prompt, context, diversity_emojis):
@@ -82,5 +84,15 @@ class PNAAssistantClient:
         print("PNA Assistant initialized (ZeroGPU mode)")
 
     def generate_response(self, prompt, context="", history=[]):
-        """Generate response - calls the top-level GPU function."""
-        return generate_with_gpu(prompt, context, self.diversity_emojis)
+        """Generate response - calls the top-level GPU function with retry."""
+        for attempt in range(MAX_RETRIES):
+            try:
+                return generate_with_gpu(prompt, context, self.diversity_emojis)
+            except RuntimeError as e:
+                if "CUDA" in str(e) and attempt < MAX_RETRIES - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    print(f"GPU initialization failed (attempt {attempt + 1}/{MAX_RETRIES}), retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    raise
+        return "I'm sorry, I'm experiencing technical difficulties. Please try again in a moment."
